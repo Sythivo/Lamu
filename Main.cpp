@@ -6,6 +6,10 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
+#else
+
+#include <cstring>
+
 #endif
 
 #include <filesystem>
@@ -24,7 +28,7 @@ int main(int args_count, char* args[])
 
     std::string source_input;
 
-    std::ifstream source_file((current.parent_path() / root_test_name).string());
+    std::ifstream source_file((current / root_test_name).string());
     if (source_file.is_open())
     {
         source_file.seekg(0, std::ios::end);
