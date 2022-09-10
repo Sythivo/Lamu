@@ -14,7 +14,7 @@ struct TaskScheduler {
 		template <class Handle, class... Args>
 		void queue(Handle handle, Args... args) {
 			if (alive) {
-				threads.push_back(std::move(std::thread(handle, args...)));
+				threads.emplace_back(std::thread(handle, args...));
 			}
 		}
 
