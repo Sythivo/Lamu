@@ -2,8 +2,7 @@
 
 project(Lamu)
 
-set (CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS -pthread)
+set(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_CONFIGURATION_TYPES "Debug;Release"
     CACHE STRING "Configuration types" FORCE)
@@ -114,6 +113,18 @@ add_executable(Lamu
   Luau/VM/lvmutils.cpp
   Main.cpp
 )
+
+IF (WIN32) # Windows
+  # Placeholder
+ELSE() # Other Linux/Mac
+    IF(UNIX)
+        find_library(LIBPTHREAD pthread)
+        IF(LIBPTHREAD)
+            target_link_libraries(Lamu PRIVATE pthread)
+        ENDIF()
+    ENDIF()
+ENDIF()
+
 # Preprocessor definitions
 target_compile_definitions(Lamu PRIVATE
   $<$<CONFIG:Debug>:_UNICODE;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS>
@@ -125,18 +136,3 @@ target_compile_options(Lamu PRIVATE
   "$<$<CONFIG:Debug>:/sdl>"
   "$<$<CONFIG:Release>:/sdl>"
 )
-
-# Minimal rebuild
-if (MSVC)
-  target_compile_options(Lamu PRIVATE
-    "$<$<CONFIG:Debug>:/Gm->"
-    "$<$<CONFIG:Release>:/Gm->"
-  )
-endif ()
-
-# Precompiled header files
-if (MSVC)
-  target_compile_options(Lamu PRIVATE
-    ""
-  )
-endif ()

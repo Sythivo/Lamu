@@ -32,7 +32,7 @@ int lamu_spawn(lua_State* L) {
 }
 
 int lamu_wait(lua_State* L) {
-    LamuThread::sleep(luaL_checknumber(L, 1) * 1000.0);
+    LamuThread::sleep(luaL_checknumber(L, 1));
     return 0;
 }
 

@@ -6,6 +6,11 @@
 
 // Mock TaskScheduler to Roblox
 
+// TODO: Work on a thread pool
+#ifndef LAMU_MAX_THREADS
+#define LAMU_MAX_THREADS std::max(1u, std::thread::hardware_concurrency() > 0 ? std::thread::hardware_concurrency() - 1 : 0);
+#endif
+
 struct TaskScheduler {
 	public:
 		TaskScheduler() : alive(true) {}

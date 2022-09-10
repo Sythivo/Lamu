@@ -57,9 +57,11 @@ namespace Lamu {
                 {
                     int status = lua_resume(ML, L, 0);
 
-                    if (status == 0)
+                    if (status == 0) 
+                    {
                         if (lua_gettop(ML) != 1)
                             lua_pushstring(ML, "module must return a single value");
+                    }
                     else if (status == LUA_YIELD) // thread yield;
                         lua_pushstring(ML, "module can not yield");
                     else if (!lua_isstring(ML, -1))

@@ -12,7 +12,7 @@
 
 #endif
 
-#include <filesystem>
+#include "Core/File/file_system.h"
 #include "Luau/VM/lua.h"
 #include "Luau/VM/lualib.h"
 #include "Luau/VM/lvm.h"
@@ -23,28 +23,38 @@ int main(int args_count, char* args[])
     // TODO: command invoke based run command
     // 'lamu <path relative to invoke context>'
     // testing run 'root.luau' file
-    std::string root_test_name = "root.luau";
-    std::filesystem::path current = std::filesystem::current_path();;
 
-    std::string source_input;
+    std::string source_path;
 
-    std::ifstream source_file((current / root_test_name).string());
-    if (source_file.is_open())
+#ifdef _RELEASE
+
+    if (args_count > 1) 
     {
-        source_file.seekg(0, std::ios::end);
-        source_input.reserve(source_file.tellg());
-        source_file.seekg(0, std::ios::beg);
-
-        source_input.assign(std::istreambuf_iterator<char>(source_file), std::istreambuf_iterator<char>());
-
-        source_file.close();
+        source_path = args[1];
     }
-    else
+    else 
+    {
+        fprintf(stderr, "Error: No Luau/Lua File Input");
         return EXIT_FAILURE;
+    }
+
+#else
+
+    source_path = "./root.luau";
+
+#endif
+
+    std::optional<std::string> source_input = FileSystem::readFile(source_path);
+
+    if (!source_input.has_value())
+    {
+        fprintf(stderr, "Error: File not found");
+        return EXIT_FAILURE;
+    }
 
     lua_State* L = luaL_newstate();
 
-    const char* source = source_input.c_str();
+    const char* source = source_input.value().c_str();
 
     size_t bytecode_size = 0;
     char* bytecode = luau_compile(source, strlen(source), NULL, &bytecode_size);
