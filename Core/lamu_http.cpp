@@ -35,10 +35,10 @@ static void http_request_tolua(const httplib::Request& req, lua_State* L)
     lua_pushvalue(L, metatable);
     lua_setmetatable(L, -2);
 }
-static void http_responce_tolua(httplib::Response& res, lua_State* L)
+static void http_response_tolua(httplib::Response& res, lua_State* L)
 {
-    // TODO: finish entire api for responce
-    luaL_newmetatable(L, "lamulib-http-meta-responce");
+    // TODO: finish entire api for response
+    luaL_newmetatable(L, "lamulib-http-meta-response");
     int metatable = lua_gettop(L);
 
     lua_pushcfunction(L,
@@ -47,8 +47,8 @@ static void http_responce_tolua(httplib::Response& res, lua_State* L)
             {
                 const char* content = luaL_checkstring(L, 2);
                 const char* content_type = luaL_checkstring(L, 3);
-                httplib::Response* responce = (*static_cast<httplib::Response**>(lua_touserdata(L, 1)));
-                responce->set_content(std::string(content), std::string(content_type));
+                httplib::Response* response = (*static_cast<httplib::Response**>(lua_touserdata(L, 1)));
+                response->set_content(std::string(content), std::string(content_type));
             }
             else {
                 printf(ERR_INVALID_METHOD_CALL);
@@ -92,7 +92,7 @@ namespace Lamu {
                                 lua_State* reqL = lua_newthread(L);
                                 lua_xmove(L, reqL, 1);
                                 http_request_tolua(req, reqL);
-                                http_responce_tolua(res, reqL);
+                                http_response_tolua(res, reqL);
                                 lua_getref(reqL, callback_reference);
                                 lua_pushvalue(reqL, -2);
                                 lua_pushvalue(reqL, -1);
