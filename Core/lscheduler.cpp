@@ -32,8 +32,20 @@ int lamu_spawn(lua_State* L) {
 }
 
 int lamu_wait(lua_State* L) {
-    LamuThread::sleep(luaL_checknumber(L, 1));
-    return 0;
+    double seconds = luaL_checknumber(L, 1);
+    double elaspsedtime = 0;
+
+    std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+
+    thread::sleep(seconds);
+
+    std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+
+    auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
+    elaspsedtime = elapsed.count() / (double)TIME_NANO;
+
+    lua_pushnumber(L, elaspsedtime);
+    return 1;
 }
 
 int lamu_delay(lua_State* L) {
@@ -58,7 +70,7 @@ int lamu_delay(lua_State* L) {
     lua_xmove(L, cL, narg);
 
     Lamu::task_scheduler->queue([cL, L, narg, duration]() {
-        LamuThread::sleep(duration);
+        thread::sleep(duration);
         lua_resume(cL, L, narg);
     });
 
@@ -73,12 +85,16 @@ namespace Lamu {
             {"defer", lamu_spawn}, // No task list for defer, support keyword for Roblox Developers
             {"wait", lamu_wait},
             {"delay", lamu_delay},
+            {"count", [](lua_State* L) {
+                lua_pushinteger(L, Lamu::task_scheduler->count());
+                return 1;
+            }},
             {NULL, NULL},
     };
     int open_task(lua_State* L)
     {
         luaL_register(L, "task", task_functions);
-        
+
         return 0;
     }
 }

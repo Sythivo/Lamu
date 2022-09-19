@@ -11,17 +11,12 @@ add_executable(Lamu
   Core/File/file_system.cpp
   Core/File/file_system.h
   Core/lamu.h
-  Core/lamu_base.cpp
-  Core/lamu_http.cpp
-  Core/lamu_import.cpp
-  Core/lamu_scheduler.cpp
-  Core/Libraries/cpp-httplib/client/client.cpp
-  Core/Libraries/cpp-httplib/client/client.h
-  Core/Libraries/cpp-httplib/http.h
-  Core/Libraries/cpp-httplib/lib.h
-  Core/Libraries/cpp-httplib/server/server.cpp
-  Core/Libraries/cpp-httplib/server/server.h
-  Core/Libraries/HTTP/http.h
+  Core/lamu.cpp
+  Core/modules.h
+  Core/modules.cpp
+  Core/import.cpp
+  Core/lscheduler.cpp
+  Core/thread.cpp
   Core/task_scheduler.h
   Luau/Ast/Ast.cpp
   Luau/Ast/Ast.h
@@ -111,17 +106,19 @@ add_executable(Lamu
   Luau/VM/lvmexecute.cpp
   Luau/VM/lvmload.cpp
   Luau/VM/lvmutils.cpp
-  Main.cpp
+  main.cpp
 )
 
 IF (WIN32) # Windows
   # Placeholder
-ELSE() # Other Linux/Mac
-    IF(UNIX)
-        find_library(LIBPTHREAD pthread)
-        IF(LIBPTHREAD)
-            target_link_libraries(Lamu PRIVATE pthread)
-        ENDIF()
+ELSEIF(UNIX) # Linux
+    find_library(LIBPTHREAD pthread)
+    IF(LIBPTHREAD)
+        target_link_libraries(Lamu PRIVATE pthread)
+    ENDIF()
+    find_library(LIBCFS -lc++fs)
+    IF(LIBCFS)
+        target_link_libraries(Lamu PRIVATE -lc++fs)
     ENDIF()
 ENDIF()
 
@@ -129,10 +126,4 @@ ENDIF()
 target_compile_definitions(Lamu PRIVATE
   $<$<CONFIG:Debug>:_UNICODE;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS>
   $<$<CONFIG:Release>:_UNICODE;_RELEASE;_CONSOLE;_CRT_SECURE_NO_WARNINGS>
-)
-
-# SDL check
-target_compile_options(Lamu PRIVATE
-  "$<$<CONFIG:Debug>:/sdl>"
-  "$<$<CONFIG:Release>:/sdl>"
 )

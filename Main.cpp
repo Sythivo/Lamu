@@ -1,15 +1,8 @@
 #include "Luau/Compiler/luacode.h"
 #include <fstream>
 
-#ifdef _WIN32
-
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-
-#else
-
+#ifndef _WIN32
 #include <cstring>
-
 #endif
 
 #include "Core/File/file_system.h"
@@ -20,10 +13,6 @@
 
 int main(int args_count, char* args[])
 {
-    // TODO: command invoke based run command
-    // 'lamu <path relative to invoke context>'
-    // testing run 'root.luau' file
-
     std::string source_path;
 
 #ifdef _RELEASE
@@ -44,6 +33,14 @@ int main(int args_count, char* args[])
 
 #endif
 
+    if (FileSystem::isDirectory("./.modules")) {
+        std::vector<std::filesystem::path> files = FileSystem::GetFilesInDirectory("./.modules");
+
+        for (std::filesystem::path file : files) {
+            Modules.push_back(LoadModule(file.stem().string().c_str(), file.string()));
+        }
+    };
+
     std::optional<std::string> source_input = FileSystem::readFile(source_path);
 
     if (!source_input.has_value())
@@ -62,6 +59,12 @@ int main(int args_count, char* args[])
     luaL_openlibs(L);
     Lamu::open(L);
 
+    for (Module module : Modules) {
+        OnLoaded OnLoadFunction = GetModuleFunction<OnLoaded>(module, "OnLoaded");
+        if (OnLoadFunction != NULL)
+            OnLoadFunction(L);
+    }
+
     int result = luau_load(L, "root", bytecode, bytecode_size, 0);
 
     if (result == 0) {
@@ -72,6 +75,9 @@ int main(int args_count, char* args[])
 
         // Main Thread, wait for Threads to finish
         Lamu::task_scheduler->finish();
+
+        for (Module module : Modules)
+            LFreeModule(module);
     }
     else {
         fprintf(stderr, "Failed to run script: %s\n", lua_tostring(L, -1));

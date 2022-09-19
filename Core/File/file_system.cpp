@@ -46,12 +46,12 @@ static std::string toUtf8(const std::wstring& path)
 #endif
 
 namespace FileSystem {
-    std::optional<std::string> readFile(const std::string& name)
+    std::optional<std::string> readFile(const std::string& path)
     {
 #ifdef _WIN32
-        FILE* file = _wfopen(fromUtf8(name).c_str(), L"rb");
+        FILE* file = _wfopen(fromUtf8(path).c_str(), L"rb");
 #else
-        FILE* file = fopen(name.c_str(), "rb");
+        FILE* file = fopen(path.c_str(), "rb");
 #endif
 
         if (!file)
@@ -79,5 +79,18 @@ namespace FileSystem {
             result.erase(0, result.find('\n'));
 
         return result;
+    }
+    bool isDirectory(const std::string& path)
+    {
+        return std::filesystem::is_directory(path);
+    }
+
+    std::vector<std::filesystem::path> GetFilesInDirectory(std::string path)
+    {
+        std::vector<std::filesystem::path> files;
+        for (std::filesystem::directory_entry const& dir_entry : std::filesystem::directory_iterator{ path })
+            if (dir_entry.is_regular_file())
+                files.push_back(std::filesystem::absolute(dir_entry.path()));
+        return files;
     }
 }
